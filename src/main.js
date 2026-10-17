@@ -174,6 +174,10 @@ color.rgb += vec3(1.0, 0.96, 0.9) * furRim * 0.10 * shellH;
   sg.bias = 0.0005; sg.normalBias = 0.002; sg.darkness = 0.35;
   sg.addShadowCaster(body); sg.addShadowCaster(skin);
   sun.shadowMinZ = 0.1; sun.shadowMaxZ = 2.5;
+  // スキンメッシュのバウンディングは休止姿勢（原点付近）のままなので、自動の影範囲だと
+  // 歩いて離れたときに影が見切れる。範囲は固定にして、ライトをモルモットに追従させる
+  sun.shadowFrustumSize = 0.6;
+  const sunOffset = sun.direction.normalizeToNew().scale(-1.0);
   body.receiveShadows = true;
 
   // ---- ボーン操作（手続き的アニメーション：待機 / 歩行）
@@ -334,6 +338,7 @@ color.rgb += vec3(1.0, 0.96, 0.9) * furRim * 0.10 * shellH;
     ao.position.set(rp.x, aoBaseY, rp.z);
     const fwd = nodes.root.tn.getDirection(BABYLON.Axis.Z);
     ao.rotation.y = Math.atan2(fwd.x, fwd.z);
+    sun.position.set(rp.x + sunOffset.x, sunOffset.y, rp.z + sunOffset.z);
     const ct = cam.target, f = 1 - Math.exp(-dt * 2.5);
     ct.x += (rp.x - ct.x) * f; ct.z += (rp.z - ct.z) * f;
     const sp = BABYLON.Vector3.Project(rp, BABYLON.Matrix.Identity(), scene.getTransformMatrix(),
