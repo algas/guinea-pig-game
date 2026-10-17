@@ -1,28 +1,28 @@
-# モルモット 3D（Babylon.js）
+# Guinea Pig 3D (Babylon.js)
 
-三毛のモルモットの 3D モデルを、毛並み・待機/歩行アニメーション・鳴き声つきでブラウザに表示するデモです。Web ゲームの土台として作っています。
+A browser demo of a tricolor guinea pig 3D model with fur, idle/walk animations, and synthesized squeaks. It is being built as the foundation for a web game.
 
-**デモ：https://algas.github.io/guinea-pig-game/**
+**Demo: https://algas.github.io/guinea-pig-game/**
 
-## 動かし方
+## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
 
-ブラウザで http://localhost:5173 を開きます。
+Open http://localhost:5173 in your browser.
 
-- ドラッグで回転、ピンチやホイールで拡大縮小
-- 画面下のボタン：待機 / 歩行の切り替え、鳴く、音のオン・オフ、毛並み、ボーン表示
-- モルモットをタップすると、なでられてグルグル鳴きます
+- Drag to rotate; pinch or use the mouse wheel to zoom
+- Buttons at the bottom: switch between idle / walk, squeak, toggle sound, fur, and bone display
+- Tap the guinea pig to pet it, and it will purr
 
-## 検証
+## Checks
 
 ```bash
 npm run build
-npm run check     # GLB の検証とヘッドレスブラウザでの動作確認（.artifacts/ にスクリーンショット）
-npm run voices    # 鳴き声を .artifacts/ に WAV で書き出し
+npm run check     # Validates the GLB and runs a headless-browser smoke test (screenshots in .artifacts/)
+npm run voices    # Writes the squeak sounds to .artifacts/ as WAV files
 ```
 
-開発の詳しい情報は [CLAUDE.md](CLAUDE.md)、これまでの経緯は [docs/HISTORY.md](docs/HISTORY.md) にあります。
+Development details are in [CLAUDE.md](CLAUDE.md), and the project history is in [docs/HISTORY.md](docs/HISTORY.md) (both in Japanese).

@@ -111,7 +111,7 @@ const glsl3 = (v) => v.map((x) => x.toFixed(4)).join(", ");
   try {
     res = await BABYLON.SceneLoader.ImportMeshAsync("", import.meta.env.BASE_URL + "models/", "guinea_pig.glb", scene);
   } catch (e) {
-    console.error(e); fail("モデルを読み込めませんでした。ページを再読み込みしてください。"); return;
+    console.error(e); fail("Couldn't load the model. Please reload the page."); return;
   }
   const byName = (n) => res.meshes.find((m) => m.name === n || m.name.startsWith(n));
   const body = byName("fur_body"), skin = byName("skin_parts"), eyes = byName("eyes");
