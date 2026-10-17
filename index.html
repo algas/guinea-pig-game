@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>モルモット 3D プレビュー</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%90%B9%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="stage">
+  <canvas id="view" aria-label="モルモットの3Dモデル。ドラッグで回転、ピンチやホイールで拡大縮小できます"></canvas>
+  <div class="title">
+    <h1>モルモット</h1>
+    <p>ドラッグで回転、ピンチ・ホイールで拡大<br>モルモットをタップするとなでられます</p>
+  </div>
+  <div class="status" id="status">読み込み中…</div>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="動作">
+      <button type="button" role="radio" data-state="idle" aria-checked="true">待機</button>
+      <button type="button" role="radio" data-state="walk" aria-checked="false">歩行</button>
+    </div>
+    <button type="button" id="btn-wheek" class="act">鳴く</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" id="btn-sound" aria-pressed="true"><span class="dot"></span>音</button>
+    <button type="button" id="btn-fur" aria-pressed="true"><span class="dot"></span>毛並み</button>
+    <button type="button" id="btn-bones" aria-pressed="false"><span class="dot"></span>ボーン</button>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

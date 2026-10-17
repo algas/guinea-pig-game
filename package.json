@@ -1,0 +1,26 @@
+{
+  "name": "guinea-pig-game",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "npm run check:glb && npm run check:smoke",
+    "check:glb": "node tools/check/validate-glb.mjs public/models/guinea_pig.glb",
+    "check:smoke": "node tools/check/smoke.mjs",
+    "voices": "node tools/check/voices.mjs",
+    "model": "python3 tools/model/generate_model.py"
+  },
+  "dependencies": {
+    "babylonjs": "9.28.0",
+    "babylonjs-loaders": "9.28.0",
+    "babylonjs-materials": "9.28.0"
+  },
+  "devDependencies": {
+    "gltf-validator": "^2.0.0-dev.3.10",
+    "puppeteer": "^25.14.0",
+    "vite": "^8.3.4"
+  }
+}

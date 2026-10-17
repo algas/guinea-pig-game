@@ -1,0 +1,4 @@
+numpy
+trimesh
+scikit-image
+fast-simplification
