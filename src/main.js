@@ -2,13 +2,44 @@
 // 構成：シーン → モデル読み込み → シェルファー → 手続き的アニメーション（待機/歩行/鳴き声）→ UI
 // 詳しくは CLAUDE.md を参照。
 import "./style.css";
-import * as BABYLON from "babylonjs";
-import "babylonjs-loaders";
-import { CustomMaterial } from "babylonjs-materials";
+// Babylon は使う分だけ個別に読み込む（パッケージ丸ごとだとバンドルが数 MB 増える）
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { Scene } from "@babylonjs/core/scene";
+import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
+import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { Camera } from "@babylonjs/core/Cameras/camera";
+import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
+import { CreateGround } from "@babylonjs/core/Meshes/Builders/groundBuilder";
+import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
+import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { SkeletonViewer } from "@babylonjs/core/Debug/skeletonViewer";
+import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Axis } from "@babylonjs/core/Maths/math.axis";
+import { Scalar } from "@babylonjs/core/Maths/math.scalar";
+import "@babylonjs/core/Culling/ray";             // scene.createPickingRay
+import "@babylonjs/loaders/glTF/glTFFileLoader";   // GLB ローダー（拡張機能は使わないので読み込まない）
+import "@babylonjs/loaders/glTF/2.0/glTFLoader";
+import { CustomMaterial } from "@babylonjs/materials/custom/customMaterial";
 import { GPVoice } from "./voice.js";
 import landmarks from "./model/landmarks.json";   // tools/model/generate_model.py が書き出す（目・鼻の位置）
 
-// コンソールや検証スクリプト（tools/check）から触れるように公開
+const BABYLON = {
+  Engine, Scene, ImageProcessingConfiguration, ArcRotateCamera, Camera, HemisphericLight, DirectionalLight,
+  ShadowGenerator, StandardMaterial, DynamicTexture, VertexBuffer, SceneLoader, PointerEventTypes,
+  Vector3, Matrix, Quaternion, Color3, Color4, Axis, Scalar,
+  MeshBuilder: { CreateGround, CreatePlane },
+  Debug: { SkeletonViewer },
+};
+
+// コンソールや検証スクリプト（tools/check）から触れるように公開（上で読み込んだものだけ）
 window.BABYLON = BABYLON;
 window.GPVoice = GPVoice;
 
@@ -94,6 +125,8 @@ const glsl3 = (v) => v.map((x) => x.toFixed(4)).join(", ");
     for (let i = 0; i < c.length; i++) if (stride === 3 || i % 4 !== 3) c[i] = Math.pow(c[i], 1 / 2.2);
     m.setVerticesData(BABYLON.VertexBuffer.ColorKind, c, false, stride);
   }
+  // 頂点カラーは容量の都合で RGBA（A はすべて 1）。半透明扱いにすると描画順が崩れて影も消えるので切る
+  for (const m of [body, skin, eyes]) m.hasVertexAlpha = false;
 
   // ---- シェルファー
   const FUR_DEFS = `

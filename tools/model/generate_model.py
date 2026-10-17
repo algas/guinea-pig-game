@@ -234,20 +234,33 @@ class GLB:
         v = {"buffer": 0, "byteOffset": len(s.bin), "byteLength": len(data)}
         if target: v["target"] = target
         s.bin += data; s.views.append(v); return len(s.views) - 1
-    def add(s, arr, ct, typ, target=None, mm=False):
+    def add(s, arr, ct, typ, target=None, mm=False, normalized=False):
         a = np.ascontiguousarray(arr); d = {"bufferView": s.view(a.tobytes(), target), "componentType": ct, "count": len(a), "type": typ}
+        if normalized: d["normalized"] = True
         if mm: d["min"] = a.min(0).tolist(); d["max"] = a.max(0).tolist()
         s.acc.append(d); return len(s.acc) - 1
+
+# ダウンロードを小さくするため、精度が要らない属性は整数に詰める（glTF の基本仕様の範囲内）
+def unorm16(x):
+    return np.round(np.clip(x, 0, 1) * 65535).astype(np.uint16)
+
+def weights16(W):
+    # 各頂点の合計がちょうど 65535 になるように丸める（端数は最大の要素に寄せる）
+    q = np.round(np.clip(W, 0, 1) / W.sum(1, keepdims=True) * 65535).astype(np.int64)
+    q[np.arange(len(q)), q.argmax(1)] += 65535 - q.sum(1)
+    return q.astype(np.uint16)
 
 def write(path):
     g = GLB(); meshes = []; nodes = []
     for name, (P, N, C, J, W, I), mat in (("fur_body", fur_prim, 0), ("skin_parts", skin_prim, 1), ("eyes", eye_prim, 2)):
         attrs = {"POSITION": g.add(P.astype(np.float32), 5126, "VEC3", 34962, True),
                  "NORMAL": g.add(N.astype(np.float32), 5126, "VEC3", 34962),
-                 "COLOR_0": g.add(C.astype(np.float32), 5126, "VEC3", 34962),
-                 "JOINTS_0": g.add(J.astype(np.uint16), 5123, "VEC4", 34962),
-                 "WEIGHTS_0": g.add(W.astype(np.float32), 5126, "VEC4", 34962)}
-        ind = g.add(I.reshape(-1).astype(np.uint32), 5125, "SCALAR", 34963)
+                 # 色は 16bit（VEC4 にして 4 バイト境界にそろえる。A は 1）
+                 "COLOR_0": g.add(unorm16(np.hstack([C, np.ones((len(C), 1))])), 5123, "VEC4", 34962, normalized=True),
+                 "JOINTS_0": g.add(J.astype(np.uint8), 5121, "VEC4", 34962),
+                 "WEIGHTS_0": g.add(weights16(W), 5123, "VEC4", 34962, normalized=True)}
+        assert I.max() < 65535
+        ind = g.add(I.reshape(-1).astype(np.uint16), 5123, "SCALAR", 34963)
         meshes.append({"name": name, "primitives": [{"attributes": attrs, "indices": ind, "material": mat}]})
         nodes.append({"name": name, "mesh": len(meshes) - 1, "skin": 0})
     ibm = []

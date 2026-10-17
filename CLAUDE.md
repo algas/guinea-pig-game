@@ -38,6 +38,13 @@ tools/check/*.mjs          検証（GLB 検証、ヘッドレス Chrome での�
 docs/                      経緯と参照写真
 ```
 
+## ダウンロードサイズ
+
+- 初回の読み込みは約 2.8MB（gzip で約 0.9MB）。内訳は JS 約 1.3MB ＋ 遅延読み込みの小さな JS、モデル約 1MB
+- Babylon は `@babylonjs/core` などの ES モジュール版を**ファイル単位で import** している（`main.js` 冒頭）。新しいクラスを使うときは、そのファイルを import して `BABYLON` オブジェクトに足す。パッケージの入口（`@babylonjs/core` や `@babylonjs/loaders/glTF/2.0`）から読むと、使わない機能まで入って数 MB 増える
+- `scene.createPickingRay` は `@babylonjs/core/Culling/ray`、影は `shadowGeneratorSceneComponent` の副作用 import が必要。足りないと実行時エラーになるので `npm run check` で確かめる
+- glTF の拡張機能（Draco など）は読み込んでいない。モデルで拡張を使うならローダーの import も見直す
+
 ## 座標系・単位
 
 - 単位 m（実寸。全長約 31cm）、**Y-up、前方 +Z**、原点は足元中央
@@ -47,8 +54,9 @@ docs/                      経緯と参照写真
 
 - メッシュは 3 つ：`fur_body`（胴〜頭〜口元の一体メッシュ、毛を生やす）、`skin_parts`（耳・鼻・足）、`eyes`
 - 模様は**頂点カラー COLOR_0（リニア値）**。StandardMaterial に渡すため `main.js` で読み込み後にガンマ補正している。テクスチャは使っていない
+- 容量を減らすため、属性は整数に詰めている（色・ウェイトは 16bit 正規化、ジョイントは 8bit、インデックスは 16bit）。色は RGBA（A=1）なので、`main.js` で `hasVertexAlpha = false` にしている（しないと半透明扱いになり、足が透けて影も消える）
 - 約 3.5 万三角形。glTF 公式バリデーターでエラー・警告 0 を維持すること（`npm run check:glb`）
-- `generate_model.py` は乱数シード固定なので、同じコードなら**バイト単位で同じ GLB** が出る。形や模様を変えたら `npm run model` で GLB と landmarks.json を一緒に更新する
+- `generate_model.py` は乱数シード固定なので、同じコード・同じライブラリなら**バイト単位で同じ GLB** が出る（numpy などのバージョンが違うと浮動小数の末尾が少し変わる）。形や模様を変えたら `npm run model` で GLB と landmarks.json を一緒に更新する
 - 形状は `body_sdf()` の楕円体の組み合わせ（smooth-min で融合）。模様は `coat()`、耳は `petal_ear()`
 
 ### ボーン（11 本）
@@ -116,7 +124,6 @@ UI 操作：本体をタップすると「なでる」扱いでグルグル（�
 
 ## 既知の課題・次にやりそうなこと
 
-- **バンドルが大きい（約 9.5MB、gzip 2MB）**：UMD 版の `babylonjs` を丸ごと読んでいるため。`@babylonjs/core` などの ES モジュール版に移すと、使う分だけに減らせる（`CustomMaterial` は `@babylonjs/materials`）
 - `main.js` が 1 ファイルに全部入っている。ゲームを作り始めたら、シーン / 毛 / モルモット（アニメ・状態）/ UI に分けるとよい
 - 歩行は足の接地を計算していない（IK なし）ので、旋回時などに足が少し滑って見える
 - 当たり判定・障害物・地形はない。移動範囲は半径 `ROAM_RADIUS` の円
